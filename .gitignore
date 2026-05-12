@@ -1,0 +1,160 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+develop-eggs/
+downloads/
+sdist/
+wheels/
+share/python-wheels/
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+.python-version
+poetry.lock.bak
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+
+# --- Testing / coverage ---
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.cache/
+.hypothesis/
+nosetests.xml
+
+# --- Type checkers / linters ---
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+.dmypy.json
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- FastAPI / web ---
+*.sqlite3
+*.sqlite3-journal
+*.db
+instance/
+.webassets-cache
+
+# --- ML model artifacts & weights ---
+# Track via Git LFS or external storage, not in repo
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+*.pb
+*.tflite
+*.engine
+*.trt
+*.plan
+models/
+weights/
+checkpoints/
+
+# --- Datasets / large media ---
+data/
+datasets/
+raw/
+processed/
+*.npy
+*.npz
+*.parquet
+*.arrow
+*.feather
+
+# Crawled images & embeddings dumps
+crawl_data/
+embeddings/
+faces/
+thumbnails/
+
+# Common media (uncomment if you don't want any tracked)
+# *.jpg
+# *.jpeg
+# *.png
+# *.mp4
+# *.mov
+
+# --- Vector DB local state ---
+milvus_data/
+qdrant_storage/
+faiss_index/
+*.index
+
+# --- Logs / runtime ---
+logs/
+*.log
+*.log.*
+pids/
+*.pid
+*.seed
+*.pid.lock
+celerybeat-schedule
+celerybeat.pid
+
+# --- Docker / infra ---
+.docker/
+docker-compose.override.yml
+
+# --- Node (in case HTMX/JS tooling sneaks in) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- IDE / editor ---
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# --- Misc ---
+*.bak
+*.tmp
+tmp/
+scratch/
