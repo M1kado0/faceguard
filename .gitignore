@@ -158,3 +158,9 @@ desktop.ini
 *.tmp
 tmp/
 scratch/
+
+# --- Claude ---
+.claude
+graphify-out
+docs
+tests

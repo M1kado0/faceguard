@@ -1,0 +1,302 @@
+# CLAUDE.md — Root Instructions for Claude Code
+
+This is the **root** instruction file. It covers project-wide rules. Claude Code reads nested `CLAUDE.md` files automatically when working inside subdirectories — refer to those for component-specific rules.
+
+| When working on... | Read this |
+|---|---|
+| Backend API, indexer, monitor, takedown, audit | [`backend/CLAUDE.md`](./backend/CLAUDE.md) |
+| Web crawler, spiders, proxy handling | [`crawler/CLAUDE.md`](./crawler/CLAUDE.md) |
+| Face detection, liveness, embeddings, clustering | [`ml/CLAUDE.md`](./ml/CLAUDE.md) |
+| Public site, admin panel (Jinja2 + HTMX) | [`frontend/CLAUDE.md`](./frontend/CLAUDE.md) |
+
+---
+
+## Project Summary
+
+**FaceGuard** finds where users' faces appear across the public internet, so they can request takedowns. Two web surfaces: a public site for end users and an admin panel for moderation.
+
+Critically, this is a **biometric data product** in a high-abuse-potential category. Liveness checks at enrollment and search are non-negotiable safety features, not optional polish.
+
+Project is in **early design phase** — no production code exists yet. Prefer clean structure over quick hacks.
+
+**The developer is a beginner in frontend, knows FastAPI on the backend.** Pick simple, Python-first solutions wherever possible.
+
+---
+
+## Top-Level Architecture Principles
+
+1. **Modular by component**: backend, crawler, ml, frontend are separate services that communicate via APIs and message queues
+2. **Queue-driven**: components don't call each other directly — they emit and consume events (Celery+Redis to start, Kafka when scaling)
+3. **Stateless inference**: ML workers are horizontally scalable, never hold per-user state
+4. **Idempotent ingestion**: re-processing the same image must not create duplicate index entries (dedupe by content hash)
+5. **Fail loudly**: explicit errors over silent failures, especially in inference and takedown flows
+6. **Audit everything biometric**: every face read, write, search, or delete writes to the audit log
+7. **Python-first**: keep the stack Python wherever possible. The only non-Python code in the project is ~50 lines of vanilla JavaScript for webcam capture.
+
+---
+
+## Repository Layout
+
+```
+faceguard/
+├── backend/        # JSON API service (FastAPI)
+├── crawler/        # Distributed crawler (Python)
+├── ml/             # Inference pipeline (Python + GPU)
+├── frontend/       # Two FastAPI web apps (Jinja2 + HTMX)
+│   ├── public-site/
+│   ├── admin-panel/
+│   └── shared/
+├── infra/          # Docker, K8s, Terraform
+├── scripts/        # Dev utilities, benchmarks, migrations
+├── tests/          # Cross-component integration tests
+├── docs/
+│   ├── adr/        # Architecture Decision Records
+│   ├── legal/      # GDPR / EU AI Act compliance notes
+│   └── api/        # OpenAPI specs
+├── pyproject.toml  # Python deps (uv-managed)
+├── docker-compose.yml
+└── .env.example
+```
+
+**Important**: `frontend/` is misleadingly named — it's actually two full Python web apps that render server-side HTML. Not a JS/TS project.
+
+---
+
+## Service Ports (dev)
+
+| Service | Port |
+|---|---|
+| Public site (web app) | 8000 |
+| Admin panel (web app) | 8001 |
+| Backend API | 8002 |
+| PostgreSQL | 5432 |
+| Redis | 6379 |
+| MinIO | 9000 |
+| Qdrant / Milvus | 6333 / 19530 |
+| Prometheus | 9090 |
+| Grafana | 3000 |
+
+---
+
+## Cross-Cutting Standards
+
+### Python (all components)
+- Python **3.11+** only
+- **Type hints everywhere** — no untyped functions
+- **`uv`** for dependency management
+- Format with **`ruff format`**, lint with **`ruff check`**
+- **`pytest`** for tests; target >80% coverage on core logic
+- Async for IO-bound (FastAPI handlers, HTTP, DB); sync for CPU-bound (inference)
+- **SQLModel** for ORM (Pydantic-native, FastAPI-friendly)
+
+### HTML / Templates (frontend)
+- Jinja2 with autoescape enabled
+- HTMX for interactivity (no SPAs, no React)
+- Tailwind CSS via CDN; DaisyUI for components
+- Only place JavaScript is used: webcam capture (~50 lines, lives in `frontend/shared/static/js/webcam.js`)
+
+### Git
+- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`
+- Branch naming: `feat/<short-name>`, `fix/<short-name>`
+- Squash merge to `main`; require PR approval
+
+### Secrets
+- **Never** hardcode secrets — use `.env` locally, secrets manager in production
+- **Never** commit `.env`, only `.env.example`
+
+---
+
+## Environment Variables (shared)
+
+Defined in root `.env.example`. Each component reads what it needs.
+
+```
+# Shared
+ENV=development                     # development | staging | production
+LOG_LEVEL=info
+
+# Database
+POSTGRES_URI=postgresql+asyncpg://user:pass@localhost:5432/faceguard
+REDIS_URI=redis://localhost:6379
+
+# Vector DB
+VECTOR_DB_BACKEND=faiss             # faiss | qdrant | milvus
+VECTOR_DB_URI=...                   # not needed for faiss (uses local file)
+VECTOR_DB_INDEX_PATH=./data/faiss.idx   # for faiss only
+
+# Queue
+CELERY_BROKER_URL=redis://localhost:6379/1
+CELERY_RESULT_BACKEND=redis://localhost:6379/2
+
+# Storage
+S3_ENDPOINT=http://localhost:9000   # MinIO in dev
+S3_ACCESS_KEY=...
+S3_SECRET_KEY=...
+S3_BUCKET_IMAGES=faceguard-images
+S3_BUCKET_EXPORTS=faceguard-exports
+
+# Auth
+JWT_SECRET=changeme                 # 32+ random bytes in prod
+JWT_ISSUER=faceguard
+API_KEY_SECRET=...
+
+# Service URLs (for inter-service calls)
+BACKEND_API_URL=http://localhost:8002
+ML_SERVICE_URL=http://localhost:8003
+
+# ML
+EMBEDDING_MODEL_PATH=./models/arcface_r100.onnx
+EMBEDDING_MODEL_VERSION=arcface-r100-v1
+LIVENESS_MODEL_PATH=./models/minifasnet_v2.onnx
+LIVENESS_THRESHOLD_PASSIVE=0.85
+LIVENESS_THRESHOLD_ACTIVE=0.95
+
+# Notifications
+EMAIL_PROVIDER=postmark             # postmark | ses
+EMAIL_API_KEY=...
+EMAIL_FROM=alerts@faceguard.io
+
+# Billing (if SaaS)
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+
+# Compliance
+DATA_RETENTION_DAYS=30
+GDPR_DELETE_GRACE_HOURS=24
+```
+
+---
+
+## Legal & Compliance (Project-Wide)
+
+Biometric data is **GDPR Article 9 special category data**. Treat it accordingly:
+
+- **Lawful basis**: explicit consent, captured at enrollment with timestamped record
+- **Liveness at enrollment**: prevents non-consensual enrollment
+- **Liveness at search**: prevents stalking use case
+- **Audit log**: every biometric operation logged with actor, target, action, timestamp
+- **Right to erasure**: complete deletion within 30 days, including index entries
+- **Right to portability**: data export endpoint must return all PII + embeddings
+- **Robots.txt**: respected by crawler unless explicit override with documented justification in `docs/legal/crawl-overrides.md`
+- **Annotate compliance-relevant code** with comment markers:
+  - `# GDPR:` for data subject rights logic
+  - `# AI-ACT:` for AI Act conformity logic
+  - `# AUDIT:` for code that must write to audit log
+  - `# LEGAL:` for crawler ethics logic
+
+A legal review is required before production launch.
+
+---
+
+## What NOT to Do (Project-Wide)
+
+- ❌ Do **not** store raw face crops in the vector DB — embeddings only
+- ❌ Do **not** bypass the queue and call the indexer directly from another service
+- ❌ Do **not** skip liveness checks on enrollment or search endpoints
+- ❌ Do **not** add a new endpoint without rate limiting
+- ❌ Do **not** log raw biometric data anywhere
+- ❌ Do **not** commit `.env` or any file with real credentials
+- ❌ Do **not** modify the audit log writer to make it optional — every biometric op must log
+- ❌ Do **not** introduce React, Vue, or any SPA framework without an ADR — the project is Python-first by design
+
+---
+
+## ADR Process
+
+Any significant technical decision (vector DB choice, model architecture, queue system, etc.) gets an ADR in `docs/adr/`:
+
+```
+docs/adr/
+├── 001-vector-db-choice.md
+├── 002-liveness-passive-vs-active.md
+├── 003-embedding-model-selection.md
+├── 004-htmx-vs-spa.md
+└── ...
+```
+
+Template:
+```markdown
+# ADR-NNN: <Title>
+
+**Status:** Proposed | Accepted | Deprecated | Superseded by ADR-XXX
+**Date:** YYYY-MM-DD
+**Deciders:** <names>
+
+## Context
+Why does this decision need to be made?
+
+## Options Considered
+1. Option A — pros/cons
+2. Option B — pros/cons
+3. Option C — pros/cons
+
+## Decision
+What did we decide and why?
+
+## Consequences
+What are the trade-offs? What becomes easier? Harder?
+
+## References
+Links to docs, benchmarks, discussions.
+```
+
+---
+
+## Useful Commands
+
+```bash
+# Full stack up
+docker compose up
+
+# Run all tests
+uv run pytest
+
+# Format & lint everything
+uv run ruff format . && uv run ruff check .
+
+# Run individual services in dev
+uv run uvicorn backend.api.main:app --reload --port 8002
+uv run uvicorn frontend.public-site.main:app --reload --port 8000
+uv run uvicorn frontend.admin-panel.main:app --reload --port 8001
+```
+
+---
+
+## Where to ask "should I?" before doing
+
+Some decisions need human input before Claude Code should proceed unilaterally:
+
+- Adding a new third-party data dependency (new crawler source, new commercial API)
+- Changing the embedding model (requires full re-embedding)
+- Adding a new biometric category (e.g. iris, voice)
+- Anything affecting consent, retention, or audit logging
+- Anything in `docs/legal/`
+- Introducing JavaScript outside `frontend/shared/static/js/webcam.js`
+- Introducing a SPA framework (React/Vue/etc.) — this goes against the project's Python-first principle
+
+For these, propose an ADR and wait for sign-off.
+
+---
+
+## Beginner Notes
+
+The developer building this is learning. When generating code:
+
+- **Prefer clarity over cleverness.** Verbose-but-obvious beats compact-but-magical.
+- **Add comments** explaining *why*, not *what* (the code already shows the what).
+- **Suggest the simplest working solution first**, then mention more advanced options as future improvements.
+- **Use the standard library** when it's good enough. Don't pull in a dependency for things that take 5 lines of plain Python.
+- **Link to docs** when introducing a new concept. Library docs > tutorials > random blog posts.
+- **Don't optimize prematurely.** Working > fast > scalable, in that order.
+
+A `docs/learnings/` folder exists for the developer to record what they've learned. Encourage that habit when helpful.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
+- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
