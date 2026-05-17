@@ -1,4 +1,5 @@
 """Track takedown status transitions: pending → sent → resolved | rejected."""
+
 from typing import Literal
 
 Status = Literal["pending", "sent", "resolved", "rejected"]

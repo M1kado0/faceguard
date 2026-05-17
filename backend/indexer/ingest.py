@@ -1,4 +1,5 @@
 """Queue consumer: pulls (image_id, embedding, metadata) and writes to the vector store."""
+
 from __future__ import annotations
 
 from backend.indexer.store import get_store

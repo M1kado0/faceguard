@@ -1,4 +1,5 @@
 """Per-platform takedown integration interface."""
+
 from typing import Protocol
 
 

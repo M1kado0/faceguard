@@ -1,4 +1,5 @@
 """Pydantic v2 request/response schemas for all API routes."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -6,8 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field
 
-
 # --- Auth ---
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -27,6 +28,7 @@ class TokenPair(BaseModel):
 
 # --- Users ---
 
+
 class UserOut(BaseModel):
     id: str
     email: EmailStr
@@ -36,6 +38,7 @@ class UserOut(BaseModel):
 
 
 # --- Enroll / Search ---
+
 
 class EnrollResponse(BaseModel):
     enrollment_id: str
@@ -58,6 +61,7 @@ class SearchResponse(BaseModel):
 
 # --- Takedown ---
 
+
 class TakedownRequest(BaseModel):
     match_id: str
     notice_type: Literal["dmca", "gdpr_erasure", "platform_tos"]
@@ -72,6 +76,7 @@ class TakedownOut(BaseModel):
 
 
 # --- Problem details (RFC 7807) ---
+
 
 class Problem(BaseModel):
     type: str = "about:blank"

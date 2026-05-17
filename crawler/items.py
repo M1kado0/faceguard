@@ -1,4 +1,5 @@
 """ImageItem — emitted by spiders, processed by pipelines, queued to inference."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

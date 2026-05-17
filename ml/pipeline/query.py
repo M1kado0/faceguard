@@ -2,6 +2,7 @@
 
 Steps: liveness → detect → align → embed → ANN query.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

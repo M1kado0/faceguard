@@ -2,6 +2,7 @@
 
 Bands: high (1-7d), medium (7-30d), low (30-90d).
 """
+
 from typing import Literal
 
 Band = Literal["high", "medium", "low"]

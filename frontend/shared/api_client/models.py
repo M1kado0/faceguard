@@ -1,4 +1,5 @@
 """Typed view-models the web apps consume from the backend."""
+
 from __future__ import annotations
 
 from datetime import datetime

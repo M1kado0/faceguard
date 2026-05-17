@@ -1,4 +1,5 @@
 """Admin auth — separate session from public site to limit blast radius."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

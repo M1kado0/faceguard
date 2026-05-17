@@ -1,4 +1,5 @@
 """AdaFace embedder — alternative to ArcFace. Swap via ADR."""
+
 from __future__ import annotations
 
 import numpy as np

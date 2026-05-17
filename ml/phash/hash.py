@@ -1,4 +1,5 @@
 """Perceptual hash (DCT-based pHash)."""
+
 from __future__ import annotations
 
 

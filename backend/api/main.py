@@ -1,4 +1,5 @@
 """FastAPI entry point for the backend JSON API (port 8002)."""
+
 from fastapi import FastAPI
 
 from backend.api.routes import (

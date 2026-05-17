@@ -3,11 +3,12 @@
 Schema (see backend/CLAUDE.md):
   id, timestamp, actor_id, actor_type, action, target_id, metadata, ip_address, user_agent
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Literal
 import uuid
+from datetime import datetime
+from typing import Literal
 
 from backend.db.models.audit_log import AuditLog
 from backend.db.session import async_session
@@ -28,7 +29,7 @@ async def log(
 ) -> None:
     entry = AuditLog(
         id=str(uuid.uuid4()),
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.utcnow(),
         actor_id=actor_id,
         actor_type=actor_type,
         action=action,

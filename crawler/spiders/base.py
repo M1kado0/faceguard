@@ -1,4 +1,5 @@
 """BaseSpider — shared behavior for all FaceGuard spiders."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime

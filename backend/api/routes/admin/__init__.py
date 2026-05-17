@@ -1,4 +1,5 @@
 """Admin-only routes (RBAC: role in {admin, moderator})."""
+
 from fastapi import APIRouter, Depends
 
 from backend.api.dependencies import require_admin

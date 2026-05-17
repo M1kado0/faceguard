@@ -1,4 +1,5 @@
 """SCRFD face detector (default). ONNX runtime — fast and accurate."""
+
 from __future__ import annotations
 
 import numpy as np

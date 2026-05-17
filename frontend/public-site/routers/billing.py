@@ -1,4 +1,5 @@
 """/billing — Stripe-backed plan management."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

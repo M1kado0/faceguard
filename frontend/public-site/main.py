@@ -1,12 +1,13 @@
 """Public site (port 8000) — end-user-facing FastAPI + Jinja2 + HTMX app."""
+
+# Imported via direct path because the dir uses hyphens (not a Python package).
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-# Imported via direct path because the dir uses hyphens (not a Python package).
-import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from routers import auth, billing, enroll, matches, search, settings, takedowns  # noqa: E402

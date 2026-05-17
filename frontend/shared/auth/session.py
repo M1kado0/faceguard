@@ -1,4 +1,5 @@
 """Session helpers — both apps hold a JWT in a session cookie."""
+
 from fastapi import Cookie, HTTPException
 
 

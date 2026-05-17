@@ -1,4 +1,5 @@
 """/models — current model versions, trigger re-embedding."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

@@ -3,7 +3,9 @@
 Steps: phash → detect → align → embed → cluster → index write.
 Liveness is NOT run here — that only applies to user enroll/search.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 

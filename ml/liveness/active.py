@@ -1,4 +1,5 @@
 """Active liveness — challenge/response (blink, turn, smile)."""
+
 from typing import Literal
 
 from ml.liveness.base import LivenessChecker, LivenessResult

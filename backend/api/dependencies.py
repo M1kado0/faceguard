@@ -1,36 +1,44 @@
 """Shared FastAPI dependencies (current user, DB session, etc.)."""
+
 from __future__ import annotations
 
+import os
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException
-from jose import jwt, JWTError
-import os
 from dotenv import load_dotenv
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.db.session import get_session
+from fastapi import Depends, Header, HTTPException
+from jose import JWTError, jwt
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.models.user import User
-
+from backend.db.session import get_session
 
 load_dotenv()
-secret = os.getenv("JWT_SECRET", "secret")
+JWT_SECRET = os.getenv("JWT_SECRET", "secret")
 
-async def get_current_user(authorization: Annotated[str | None, Header()] = None, session: AsyncSession = Depends(get_session)):
-    """Resolve the current user from the Authorization: Bearer <jwt> header.
 
-    TODO: implement JWT decode + lookup against users table.
-    """
+async def get_current_user(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> User:
+    """Resolve the current user from the Authorization: Bearer <jwt> header."""
     if not authorization:
         raise HTTPException(status_code=401, detail="not_authenticated")
-    token = authorization.replace("Bearer ", "")
-    try:
-        decoded = jwt.decode(token, secret, algorithms=["HS256"])
-    except JWTError:
+
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
         raise HTTPException(status_code=401, detail="invalid_token")
-    user_id = decoded["sub"]
+
+    try:
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except JWTError as exc:
+        raise HTTPException(status_code=401, detail="invalid_token") from exc
+
+    user_id = decoded.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="invalid_token")
+
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -38,13 +46,8 @@ async def get_current_user(authorization: Annotated[str | None, Header()] = None
     return user
 
 
-
-
-
-
-
-async def require_admin(user=Depends(get_current_user)):
+async def require_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
     """Gate admin-only routes."""
-    if getattr(user, "role", None) not in {"admin", "moderator"}:
+    if user.role not in {"admin", "moderator"}:
         raise HTTPException(status_code=403, detail="forbidden")
     return user

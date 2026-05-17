@@ -1,4 +1,5 @@
 """/audit — audit log viewer (filterable, exportable)."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

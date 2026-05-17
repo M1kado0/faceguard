@@ -1,4 +1,5 @@
 """FaceDetector interface — every detection model implements this."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

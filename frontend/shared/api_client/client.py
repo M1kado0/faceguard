@@ -1,4 +1,5 @@
 """Backend JSON API client. Use this from web app routes — never raw httpx."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -16,9 +17,7 @@ class BackendClient:
     # --- Auth ---
 
     async def login(self, email: str, password: str) -> dict[str, Any]:
-        r = await self._client.post(
-            "/v1/auth/login", json={"email": email, "password": password}
-        )
+        r = await self._client.post("/v1/auth/login", json={"email": email, "password": password})
         r.raise_for_status()
         return r.json()
 
@@ -32,9 +31,7 @@ class BackendClient:
     # --- User ---
 
     async def get_me(self, *, token: str) -> dict[str, Any]:
-        r = await self._client.get(
-            "/v1/users/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        r = await self._client.get("/v1/users/me", headers={"Authorization": f"Bearer {token}"})
         r.raise_for_status()
         return r.json()
 

@@ -1,4 +1,5 @@
 """RetinaFace detector — alternative to SCRFD. Swap via ADR."""
+
 from __future__ import annotations
 
 import numpy as np

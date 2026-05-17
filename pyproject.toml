@@ -46,6 +46,8 @@ dependencies = [
     "numpy>=2.4.4",
     "faiss-cpu>=1.13.2",
     "psycopg2-binary>=2.9.12",
+    "torch>=2.12.0",
+    "onnxscript>=0.7.0",
 ]
 
 [project.optional-dependencies]
@@ -77,6 +79,10 @@ dev = [
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+extend-exclude = [
+    "backend/db/migrations/versions",
+    "ml/liveness/model_lib",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "RET", "SIM"]
@@ -84,6 +90,8 @@ ignore = ["S101"]  # allow `assert` in tests
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S"]
+"backend/api/schemas.py" = ["S105"]
+"backend/db/migrations/env.py" = ["E402", "F401"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

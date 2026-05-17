@@ -166,4 +166,9 @@ docs
 tests
 .claudeignore
 
+.codex
+AGENTS.md
+
 images
+.github
+.mcp.json

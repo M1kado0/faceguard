@@ -1,4 +1,5 @@
 """/matches — match dashboard + detail."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

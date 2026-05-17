@@ -1,7 +1,8 @@
 """Admin panel (port 8001). Deployed on a separate domain in prod."""
-from pathlib import Path
 
 import sys
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

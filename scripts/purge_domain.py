@@ -2,6 +2,7 @@
 
 uv run python scripts/purge_domain.py example.com
 """
+
 import sys
 
 

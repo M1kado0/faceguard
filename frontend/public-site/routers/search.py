@@ -1,4 +1,5 @@
 """/search — search for matches (liveness REQUIRED)."""
+
 from fastapi import APIRouter, Request, UploadFile
 from fastapi.responses import HTMLResponse
 

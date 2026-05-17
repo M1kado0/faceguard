@@ -1,36 +1,39 @@
 """Faiss implementation of VectorStore."""
+
 from __future__ import annotations
 
-from backend.indexer.store import Match, VectorStore
-import faiss
 import json
 from pathlib import Path
+from typing import Any
+
+import faiss
 import numpy as np
 
+from backend.indexer.store import Match, VectorStore
+
 _DIM = 512
+
 
 class FAISSStore(VectorStore):
     def __init__(self, index_path: str) -> None:
         self._path = Path(index_path)
-        self._meta_path = self._path.with_suffix('.meta.json')
+        self._meta_path = self._path.with_suffix(".meta.json")
 
         if self._path.exists():
             self._index = faiss.read_index(str(self._path))
             raw = json.loads(self._meta_path.read_text())
-            self._id_map: list[str] = raw['id_map']
-            self._metadata: dict[str, dict] = raw['metadata']
+            self._id_map: list[str] = raw["id_map"]
+            self._metadata: dict[str, dict[str, Any]] = raw["metadata"]
         else:
             self._index = faiss.IndexFlatIP(_DIM)
             self._id_map = []
             self._metadata = {}
-    
+
     def _save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         faiss.write_index(self._index, str(self._path))
-        self._meta_path.write_text(
-            json.dumps({"id_map": self._id_map, "metadata": self._metadata})
-        )
-    
+        self._meta_path.write_text(json.dumps({"id_map": self._id_map, "metadata": self._metadata}))
+
     @staticmethod
     def _normalize(embedding: np.ndarray) -> np.ndarray:
         vec = embedding.astype(np.float32)
@@ -38,30 +41,82 @@ class FAISSStore(VectorStore):
         if norm == 0:
             raise ValueError("Zero-norm embedding")
         return vec / norm
-    
-    async def add(self, *, image_id, embedding, metadata) -> None:
-        vec = self._normalize(embedding).reshape(1, _DIM) 
+
+    @staticmethod
+    def _matches_filter(metadata: dict[str, Any], filter: dict | None) -> bool:  # noqa: A002
+        if not filter:
+            return True
+        return all(metadata.get(key) == value for key, value in filter.items())
+
+    def _rebuild(self, kept_ids: list[str], vectors: list[np.ndarray]) -> None:
+        self._index = faiss.IndexFlatIP(_DIM)
+        self._id_map = kept_ids
+        if vectors:
+            self._index.add(np.vstack(vectors).astype(np.float32))
+        self._save()
+
+    async def add(self, *, image_id: str, embedding: np.ndarray, metadata: dict) -> None:
+        if image_id in self._metadata:
+            await self.delete(image_id=image_id)
+        vec = self._normalize(embedding).reshape(1, _DIM)
         self._index.add(vec)
         self._id_map.append(image_id)
         self._metadata[image_id] = metadata
         self._save()
 
-    async def search(self, *, embedding, top_k, filter=None) -> list[Match]:
+    async def search(
+        self,
+        *,
+        embedding: np.ndarray,
+        top_k: int,
+        filter: dict | None = None,  # noqa: A002
+    ) -> list[Match]:
         if self._index.ntotal == 0:
             return []
         vec = self._normalize(embedding).reshape(1, _DIM)
-        scores, indices = self._index.search(vec, top_k)
+        candidate_count = self._index.ntotal if filter else min(top_k, self._index.ntotal)
+        scores, indices = self._index.search(vec, candidate_count)
         results = []
-        for score, index in zip(scores[0], indices[0]):
+        for score, index in zip(scores[0], indices[0], strict=True):
             if index == -1:
                 continue
             image_id = self._id_map[index]
-            results.append(Match(image_id=image_id, score=score, metadata=self._metadata[image_id]))
+            metadata = self._metadata[image_id]
+            if not self._matches_filter(metadata, filter):
+                continue
+            results.append(Match(image_id=image_id, score=float(score), metadata=metadata))
+            if len(results) == top_k:
+                break
         return results
 
+    async def delete(self, *, image_id: str) -> None:
+        if image_id not in self._metadata:
+            return
+        kept_ids = [existing_id for existing_id in self._id_map if existing_id != image_id]
+        vectors = [
+            self._index.reconstruct(index)
+            for index, existing_id in enumerate(self._id_map)
+            if existing_id != image_id
+        ]
+        del self._metadata[image_id]
+        self._rebuild(kept_ids, vectors)
 
-    async def delete(self, *, image_id) -> None:
-        raise NotImplementedError
+    async def delete_by_user(self, *, user_id: str) -> int:
+        ids_to_delete = {
+            image_id
+            for image_id, metadata in self._metadata.items()
+            if metadata.get("user_id") == user_id
+        }
+        if not ids_to_delete:
+            return 0
 
-    async def delete_by_user(self, *, user_id) -> int:
-        raise NotImplementedError
+        kept_ids = [image_id for image_id in self._id_map if image_id not in ids_to_delete]
+        vectors = [
+            self._index.reconstruct(index)
+            for index, image_id in enumerate(self._id_map)
+            if image_id not in ids_to_delete
+        ]
+        for image_id in ids_to_delete:
+            del self._metadata[image_id]
+        self._rebuild(kept_ids, vectors)
+        return len(ids_to_delete)

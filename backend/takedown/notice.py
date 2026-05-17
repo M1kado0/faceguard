@@ -1,4 +1,5 @@
 """Generate DMCA / GDPR / platform takedown notices from templates."""
+
 from typing import Literal
 
 NoticeType = Literal["dmca", "gdpr_erasure", "platform_tos"]

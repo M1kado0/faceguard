@@ -2,6 +2,7 @@
 
 Output: 112x112 aligned face crop ready for ArcFace/AdaFace.
 """
+
 from __future__ import annotations
 
 import numpy as np

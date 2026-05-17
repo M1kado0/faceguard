@@ -1,4 +1,5 @@
 """Structured request logging (never log PII or biometric blobs)."""
+
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 

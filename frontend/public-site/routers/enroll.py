@@ -1,4 +1,5 @@
 """/enroll — add a face to be monitored (liveness REQUIRED)."""
+
 from fastapi import APIRouter, Request, UploadFile
 from fastapi.responses import HTMLResponse
 

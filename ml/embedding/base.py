@@ -1,4 +1,5 @@
 """FaceEmbedder interface — output is 512-dim float32, L2-normalized."""
+
 from __future__ import annotations
 
 from typing import Protocol

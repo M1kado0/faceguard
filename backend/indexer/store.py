@@ -1,12 +1,13 @@
 """VectorStore protocol — every vector DB backend implements this."""
+
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Protocol
 
 import numpy as np
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -32,7 +33,7 @@ class VectorStore(Protocol):
         *,
         embedding: np.ndarray,
         top_k: int,
-        filter: dict | None = None,
+        filter: dict | None = None,  # noqa: A002
     ) -> list[Match]: ...
 
     async def delete(self, *, image_id: str) -> None: ...
@@ -46,5 +47,7 @@ def get_store() -> VectorStore:
     backend = os.environ.get("VECTOR_DB_BACKEND", "faiss")
     if backend == "faiss":
         from backend.indexer.faiss_store import FAISSStore
+
         path = os.getenv("VECTOR_DB_INDEX_PATH", "./data/faiss.idx")
         return FAISSStore(path)
+    raise ValueError(f"Unsupported VECTOR_DB_BACKEND: {backend}")

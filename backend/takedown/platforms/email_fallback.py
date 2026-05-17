@@ -1,4 +1,5 @@
 """Manual email fallback used until per-platform API integrations exist."""
+
 from backend.takedown.platforms.base import TakedownPlatform
 
 

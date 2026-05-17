@@ -1,4 +1,5 @@
 """/crawler — spider health, throughput, blocklist management."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 

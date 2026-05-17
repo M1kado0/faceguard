@@ -1,4 +1,5 @@
 """Example spider — copy this file to add a new source."""
+
 from crawler.spiders.base import BaseSpider
 
 

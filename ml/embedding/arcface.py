@@ -1,4 +1,5 @@
 """ArcFace (ResNet-100) embedder — default."""
+
 from __future__ import annotations
 
 import numpy as np

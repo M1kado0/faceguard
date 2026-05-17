@@ -1,4 +1,5 @@
 """Stripe webhook handler — POST /v1/webhooks/stripe."""
+
 from fastapi import APIRouter, Request
 
 router = APIRouter()
