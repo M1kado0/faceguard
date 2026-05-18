@@ -4,7 +4,8 @@
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -22,6 +23,13 @@ app.mount("/static", StaticFiles(directory=SHARED / "static"), name="static")
 templates = Jinja2Templates(
     directory=[ROOT / "templates", SHARED / "templates"],
 )
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/index.html",
+    )
 
 app.include_router(auth.router, tags=["auth"])
 app.include_router(enroll.router, tags=["enroll"])

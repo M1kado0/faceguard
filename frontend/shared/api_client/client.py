@@ -37,19 +37,53 @@ class BackendClient:
 
     # --- Search / Enroll ---
 
-    async def search(self, *, photo: bytes, liveness_blob: bytes, token: str) -> list[dict]:
+    async def search(
+        self,
+        *,
+        photo: bytes,
+        liveness_blob: bytes,
+        token: str,
+        photo_filename: str = "photo.jpg",
+        photo_content_type: str = "image/jpeg",
+        liveness_filename: str = "liveness.jpg",
+        liveness_content_type: str = "image/jpeg",
+    ) -> list[dict]:
         r = await self._client.post(
             "/v1/search",
-            files={"photo": photo, "liveness_blob": liveness_blob},
+            files={
+                "photo": (photo_filename, photo, photo_content_type),
+                "liveness_blob": (
+                    liveness_filename,
+                    liveness_blob,
+                    liveness_content_type,
+                ),
+            },
             headers={"Authorization": f"Bearer {token}"},
         )
         r.raise_for_status()
         return r.json()["matches"]
 
-    async def enroll(self, *, photo: bytes, liveness_blob: bytes, token: str) -> dict[str, Any]:
+    async def enroll(
+        self,
+        *,
+        photo: bytes,
+        liveness_blob: bytes,
+        token: str,
+        photo_filename: str = "photo.jpg",
+        photo_content_type: str = "image/jpeg",
+        liveness_filename: str = "liveness.jpg",
+        liveness_content_type: str = "image/jpeg",
+    ) -> dict[str, Any]:
         r = await self._client.post(
             "/v1/enroll",
-            files={"photo": photo, "liveness_blob": liveness_blob},
+            files={
+                "photo": (photo_filename, photo, photo_content_type),
+                "liveness_blob": (
+                    liveness_filename,
+                    liveness_blob,
+                    liveness_content_type,
+                ),
+            },
             headers={"Authorization": f"Bearer {token}"},
         )
         r.raise_for_status()
